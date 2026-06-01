@@ -172,6 +172,15 @@ def _learn_subjects_from_search(book_titles, language):
     return [subject for subject, _count in subject_scores.most_common()]
 
 
+def _broaden_subject(subject):
+    words = subject.split()
+    if len(words) >= 3:
+        return " ".join(words[-2:])
+    if len(words) == 2:
+        return words[-1]
+    return None
+
+
 def _merge_subjects(*subject_lists):
     merged = []
     seen = set()
@@ -295,31 +304,57 @@ def recommend_books(book_titles, limit=3):
     recommendations = []
     recommendation_keys = set()
 
-    for subject in subjects:
-        for recommendation in _recommend_from_subject(
-            subject, language, owned_titles, limit
-        ):
-            key = _normalize(recommendation["title"])
-            if key in recommendation_keys:
-                continue
-
-            recommendations.append(recommendation)
-            recommendation_keys.add(key)
-
+    def _collect(recs):
+        for rec in recs:
+            key = _normalize(rec["title"])
+            if key not in recommendation_keys:
+                recommendations.append(rec)
+                recommendation_keys.add(key)
             if len(recommendations) >= limit:
+                return True
+        return False
+
+    # Level 1: exact subject match
+    for subject in subjects:
+        if _collect(_recommend_from_subject(subject, language, owned_titles, limit)):
+            return recommendations
+
+    # Level 2: broader subjects (strip prefix words to get core genre)
+    seen_broad = set()
+    for subject in subjects:
+        broad = _broaden_subject(subject)
+        if broad and broad not in seen_broad:
+            seen_broad.add(broad)
+            if _collect(_recommend_from_subject(broad, language, owned_titles, limit)):
                 return recommendations
 
-    for recommendation in _recommend_from_shelf_terms(
-        book_titles, language, owned_titles, limit
-    ):
-        key = _normalize(recommendation["title"])
-        if key in recommendation_keys:
-            continue
+    # Level 3: shelf keyword search with language filter
+    if _collect(_recommend_from_shelf_terms(book_titles, language, owned_titles, limit)):
+        return recommendations
 
-        recommendations.append(recommendation)
-        recommendation_keys.add(key)
+    # Level 4: shelf keyword search without language filter
+    if language and _collect(_recommend_from_shelf_terms(book_titles, None, owned_titles, limit)):
+        return recommendations
 
-        if len(recommendations) >= limit:
-            return recommendations
+    # Level 5: broad keyword search, no filters
+    shelf_terms = _shelf_search_terms(book_titles)
+    query = " ".join(shelf_terms[:5]) if shelf_terms else " ".join(
+        word for title in book_titles for word in _normalize(title).split() if len(word) >= 4
+    )
+    if query:
+        for doc in _search_open_library({"q": query, "limit": 20, "fields": "title"}):
+            title = _display_title(doc.get("title", ""))
+            key = _normalize(title)
+            if not title or key in owned_titles or key in recommendation_keys:
+                continue
+            recommendations.append({
+                "title": title,
+                "reason": "Recommended based on keywords from your shelf.",
+                "language": None,
+                "subject": None,
+            })
+            recommendation_keys.add(key)
+            if len(recommendations) >= limit:
+                break
 
     return recommendations

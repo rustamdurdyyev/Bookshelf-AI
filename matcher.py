@@ -21,7 +21,7 @@ CONNECTOR_WORDS = {
     "the",
 }
 
-OPEN_LIBRARY_SEARCH_URL = "https://openlibrary.org/search.json"
+GOOGLE_BOOKS_SEARCH_URL = "https://www.googleapis.com/books/v1/volumes"
 
 
 def _strip_accents(text):
@@ -121,9 +121,9 @@ def _similarity(left, right):
     return SequenceMatcher(None, _normalized_text(left), _normalized_text(right)).ratio()
 
 
-def _search_open_library(query, timeout=5):
-    params = urlencode({"title": query, "limit": 5, "fields": "title"})
-    url = f"{OPEN_LIBRARY_SEARCH_URL}?{params}"
+def _search_google_books(query, timeout=5):
+    params = urlencode({"q": f"intitle:{query}", "maxResults": 5, "fields": "items/volumeInfo/title"})
+    url = f"{GOOGLE_BOOKS_SEARCH_URL}?{params}"
 
     try:
         with urlopen(url, timeout=timeout) as response:
@@ -131,25 +131,73 @@ def _search_open_library(query, timeout=5):
     except OSError:
         return None
 
-    docs = payload.get("docs", [])
-    if not docs:
+    items = payload.get("items", [])
+    if not items:
         return None
 
     best_title = None
     best_score = 0.0
 
-    for doc in docs:
-        title = doc.get("title")
+    for item in items:
+        title = item.get("volumeInfo", {}).get("title")
         if not title:
             continue
-
         score = _similarity(query, title)
         if score > best_score:
             best_title = title
             best_score = score
 
-    if best_score >= 0.78:
+    if best_score >= 0.55:
         return _clean_line(best_title)
+
+    return None
+
+
+def _meaningful_words(text):
+    return {w for w in _normalized_text(text).split() if len(w) >= 4}
+
+
+def _fragment_queries(text):
+    words = _normalized_text(text).split()
+    fragments = []
+    for i in range(len(words)):
+        if i + 2 <= len(words):
+            frag = words[i:i + 2]
+            if any(len(w) >= 4 for w in frag):
+                fragments.append(" ".join(frag))
+        if i + 3 <= len(words):
+            frag = words[i:i + 3]
+            if any(len(w) >= 4 for w in frag):
+                fragments.append(" ".join(frag))
+    return _dedupe(fragments)
+
+
+def _verify_title(title, timeout=5):
+    params = urlencode({"q": f"intitle:\"{title}\"", "maxResults": 3, "fields": "items/volumeInfo/title"})
+    url = f"{GOOGLE_BOOKS_SEARCH_URL}?{params}"
+    try:
+        with urlopen(url, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except OSError:
+        return None
+    for item in (payload.get("items") or []):
+        found = item.get("volumeInfo", {}).get("title")
+        if found and _similarity(title, found) >= 0.85:
+            return _clean_line(found)
+    return None
+
+
+def _search_best_title(ocr_line):
+    ocr_words = _meaningful_words(ocr_line)
+
+    result = _search_google_books(ocr_line)
+    if result and ocr_words & _meaningful_words(result):
+        return result
+
+    for fragment in _fragment_queries(ocr_line):
+        result = _search_google_books(fragment)
+        if result and ocr_words & _meaningful_words(result):
+            return result
 
     return None
 
@@ -226,11 +274,13 @@ def fix_book_titles(raw_texts, use_online_lookup=False, max_online_queries=40):
         title = None
 
         if query_count < max_online_queries:
-            title = _search_open_library(candidate)
+            title = _search_best_title(candidate)
             query_count += 1
 
         if title:
-            fixed_titles.append(title)
+            verified = _verify_title(title)
+            if verified:
+                fixed_titles.append(verified)
 
     fallback_titles = [
         _title_case_if_needed(line) for line in merged_lines if _looks_like_title(line)
