@@ -1,5 +1,5 @@
 # 📚 Bookshelf AI
-
+![Bookshelf AI](Bookshelf_AI.jpg)
 An intelligent book discovery tool that reads your bookshelf from a photo and recommends new books to read.
 
 Point it at a photo of your bookshelf — it extracts the titles using OCR, validates them against Open Library, and generates personalized recommendations based on your collection.
