@@ -1,45 +1,40 @@
-# 📚 Bookshelf AI
+# Bookshelf AI
+
+An experimental local book discovery tool that reads a bookshelf photo, extracts possible book titles with OCR, matches those titles against online book data, and recommends books related to the detected shelf.
+
+The current pipeline runs locally, but it still needs an internet connection for book lookup and recommendation metadata.
+
 ![Bookshelf AI](Bookshelf_AI.jpg)
-An intelligent book discovery tool that reads your bookshelf from a photo and recommends new books to read.
 
-Point it at a photo of your bookshelf — it extracts the titles using OCR, validates them against Open Library, and generates personalized recommendations based on your collection.
+## What It Does
 
-Everything runs locally with no API keys required.
+- Reads text from bookshelf photos using PaddleOCR, including rotated OCR passes.
+- Groups OCR fragments by detected layout position.
+- Cleans noisy OCR fragments into possible title and author candidates.
+- Optionally matches candidate titles with Google Books and Open Library.
+- Uses Open Library metadata to infer language, subjects, and related books.
+- Prints detected titles and recommended books in the terminal.
 
----
+## Project Structure
 
-## ✨ Features
-
-- 📸 Extracts book titles from bookshelf photos using PaddleOCR
-- 🔍 Cleans and validates detected titles via the Open Library API
-- 🌍 Detects the language of your bookshelf automatically
-- 🤖 Recommends new books based on genres, subjects, and themes in your collection
-- 🔌 No API keys or external accounts needed
-
----
-
-## 📂 Project Structure
-
-```
-main.py           Entry point — runs the full pipeline
-ocr.py            OCR engine wrapper (PaddleOCR)
-matcher.py        Title cleaning and Open Library matching
-recommender.py    Book recommendation engine
+```text
+main.py           Entry point for the full pipeline
+ocr.py            PaddleOCR setup and OCR result parsing
+matcher.py        Layout-aware OCR cleanup and optional Google Books title matching
+recommender.py    Open Library based recommendation engine
 requirements.txt  Python dependencies
 bookshelf.jpg     Sample bookshelf image for testing
 ```
 
----
-
-## 🧰 Requirements
+## Requirements
 
 - Python 3.9 or higher
-- Internet connection (for Open Library API queries)
-- PaddleOCR models are downloaded automatically on first run
+- Internet connection for Google Books and Open Library requests
+- PaddleOCR and PaddlePaddle, installed from `requirements.txt`
 
----
+PaddleOCR may download OCR models the first time it runs.
 
-## 📦 Installation
+## Installation
 
 Clone the repository:
 
@@ -48,56 +43,115 @@ git clone https://github.com/rustamdurdyyev/Bookshelf-AI
 cd Bookshelf-AI
 ```
 
-(Optional) Create a virtual environment:
+Create and activate a virtual environment:
 
 ```bash
-python -m venv venv
-source venv/bin/activate    # Windows: venv\Scripts\activate
+python -m venv .venv
+```
+
+On Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+On macOS or Linux:
+
+```bash
+source .venv/bin/activate
 ```
 
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-> Note: PaddleOCR will download its models on the first run. This may take a minute.
+## Usage
 
----
-
-## 🚀 Usage
-
-Run the pipeline on the default sample image:
+Run the pipeline with the default image configured in `main.py`:
 
 ```bash
 python main.py
 ```
 
-To use your own bookshelf photo, edit the `image_path` variable at the top of `main.py`:
+Run it with a specific bookshelf photo:
 
-```python
-image_path = "your_bookshelf.jpg"
+```bash
+python main.py bookshelf.jpg
 ```
 
----
+Choose an OCR language when the shelf is not primarily English:
 
-## 🧠 How It Works
+```bash
+python main.py bookshelf.jpg --ocr-lang ro
+python main.py bookshelf_turkish.png --ocr-lang tr
+python main.py bookshelf_russian.webp --ocr-lang ru
+```
 
-1. **OCR** — PaddleOCR scans the image and extracts raw text from book spines
-2. **Title Cleaning** — Noise, fragments, and split lines are filtered and merged
-3. **Validation** — Each candidate title is matched against Open Library to get the canonical title
-4. **Recommendations** — Subjects and genres from your matched books are used to find new titles you might enjoy
+Change the number of recommendations:
 
----
+```bash
+python main.py bookshelf.jpg --limit 5
+```
 
-## 🔄 Supported Image Formats
+Adjust OCR confidence filtering:
 
-`.jpg`, `.jpeg`, `.png`, `.webp`
+```bash
+python main.py bookshelf.jpg --min-ocr-score 0.6
+```
 
-Works best with clear, well-lit photos where book spines are visible and upright.
+Control OCR rotations:
 
----
+```bash
+python main.py bookshelf.jpg --ocr-rotations 0
+python main.py bookshelf.jpg --ocr-rotations 0,90,180,270
+```
 
-## 📜 License
+Control how many online title lookups are attempted:
 
-This project is open-source. Feel free to use, modify, and share.
+```bash
+python main.py bookshelf.jpg --max-title-lookups 10
+```
+
+Skip online title matching and use only cleaned OCR text:
+
+```bash
+python main.py bookshelf.jpg --offline-title-matching
+```
+
+Debug OCR and title extraction without generating recommendations:
+
+```bash
+python main.py bookshelf.jpg --skip-recommendations
+```
+
+Supported image formats include `.jpg`, `.jpeg`, `.png`, and `.webp`.
+
+## How It Works
+
+1. OCR: `ocr.py` extracts raw text from the image at one or more rotations.
+2. Layout grouping: `matcher.py` groups nearby OCR boxes that likely belong to the same book, whether the text is arranged in rows or columns.
+3. Cleanup: `matcher.py` removes noise, tries top-to-bottom and bottom-to-top column reading order, merges split title fragments, and avoids using nearby author-only rows as titles.
+4. Matching: `matcher.py` can search Google Books and Open Library using title candidates and nearby author hints.
+5. Recommendation: `recommender.py` searches Open Library for language and subject metadata, then recommends related titles.
+
+## Current Limitations
+
+- OCR defaults to English unless `--ocr-lang` is provided.
+- Mixed-language shelves may need multiple runs with different OCR languages.
+- Multi-rotation OCR is slower than a single OCR pass.
+- Layout-aware title matching is still heuristic and may need manual review for difficult photos.
+- Recommendations are only as good as the detected title list.
+- There is no review step yet for confirming detected books before recommendations are generated.
+
+## Suggested Next Improvements
+
+1. Add stricter title matching with confidence thresholds.
+2. Cache Google Books and Open Library responses.
+3. Add a confirmation step before generating recommendations.
+4. Include OCR bounding boxes in debug output.
+
+## License
+
+This project is open source. Feel free to use, modify, and share.
