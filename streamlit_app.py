@@ -46,6 +46,10 @@ st.markdown(
     [data-testid="stMain"] {
         color-scheme: light;
     }
+    html {
+        overflow-y: scroll;
+        scrollbar-gutter: stable;
+    }
     .stApp {
         background:
             radial-gradient(circle at 18% 0%, rgba(59, 130, 246, 0.14), transparent 19rem),
@@ -123,7 +127,9 @@ st.markdown(
     div[data-testid="stExpander"] {
         border: 1px solid #dce5f2;
         border-radius: 18px;
-        background: #ffffff;
+        background:
+            radial-gradient(circle at 96% 0%, rgba(20, 184, 166, 0.12), transparent 10rem),
+            linear-gradient(135deg, #ffffff 0%, #f3f8ff 58%, #eefdfa 100%);
         box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
         overflow: hidden;
     }
@@ -136,8 +142,8 @@ st.markdown(
         color: #111827;
     }
     div[data-testid="stExpander"] div[data-testid="stVerticalBlockBorderWrapper"] {
-        background: #f8fafc;
-        border-color: #e5edf7;
+        background: rgba(255, 255, 255, 0.92);
+        border-color: #dce5f2;
         box-shadow: none;
     }
     div.stButton > button {
