@@ -67,14 +67,15 @@ st.markdown(
         margin-bottom: 1rem;
         padding: 1.35rem 1.2rem;
         border-radius: 22px;
-        color: #ffffff;
+        color: #111827;
         background:
-            radial-gradient(circle at 90% 0%, rgba(255,255,255,0.24), transparent 12rem),
-            linear-gradient(135deg, #111827 0%, #2563eb 58%, #14b8a6 100%);
-        box-shadow: 0 20px 42px rgba(37, 99, 235, 0.22);
+            radial-gradient(circle at 92% 0%, rgba(37, 99, 235, 0.16), transparent 12rem),
+            linear-gradient(135deg, #ffffff 0%, #f3f8ff 58%, #eefdfa 100%);
+        border: 1px solid #dce5f2;
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
     }
     .app-hero-kicker {
-        color: rgba(255,255,255,0.74);
+        color: #2563eb;
         font-size: 0.75rem;
         font-weight: 700;
         letter-spacing: 0.1rem;
@@ -88,7 +89,7 @@ st.markdown(
         margin-bottom: 0.55rem;
     }
     .app-hero-copy {
-        color: rgba(255,255,255,0.86);
+        color: #334155;
         font-size: 0.98rem;
         line-height: 1.45;
         max-width: 33rem;
