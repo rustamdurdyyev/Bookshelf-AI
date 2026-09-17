@@ -135,6 +135,11 @@ st.markdown(
         font-weight: 750;
         color: #111827;
     }
+    div[data-testid="stExpander"] div[data-testid="stVerticalBlockBorderWrapper"] {
+        background: #f8fafc;
+        border-color: #e5edf7;
+        box-shadow: none;
+    }
     div.stButton > button {
         width: 100%;
         border-radius: 12px;
@@ -328,7 +333,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    with st.expander("Reading Setup", expanded=False):
+    with st.expander("Analyzing Setup", expanded=False):
         st.markdown(
             '<div class="section-note">Choose how the shelf should be read before adding photos.</div>',
             unsafe_allow_html=True,
@@ -342,24 +347,29 @@ def main():
             ),
             model_names[0],
         )
-        model_name = st.selectbox(
-            "Model",
-            model_names,
-            index=model_names.index(default_model_name),
-        )
+        with st.container(border=True):
+            model_name = st.selectbox(
+                "Model",
+                model_names,
+                index=model_names.index(default_model_name),
+            )
         model = MODEL_CHOICES[model_name]
         max_images = MODEL_IMAGE_LIMITS.get(model, DEFAULT_MAX_IMAGES_PER_REQUEST)
-        language_choice = st.selectbox(
-            "Language",
-            ["auto", "English", "Romanian", "Turkish", "Russian", "German", "French", "Spanish"],
-            index=0,
-        )
-        recommendation_limit = st.slider(
-            "Recommendations",
-            1,
-            RECOMMENDATION_MAX_LIMIT,
-            RECOMMENDATION_SAFE_LIMIT,
-        )
+
+        with st.container(border=True):
+            language_choice = st.selectbox(
+                "Language",
+                ["auto", "English", "Romanian", "Turkish", "Russian", "German", "French", "Spanish"],
+                index=0,
+            )
+
+        with st.container(border=True):
+            recommendation_limit = st.slider(
+                "Recommendations",
+                1,
+                RECOMMENDATION_MAX_LIMIT,
+                RECOMMENDATION_SAFE_LIMIT,
+            )
 
     with st.container(border=True):
         st.subheader("Add Photos From Your Shelf")
