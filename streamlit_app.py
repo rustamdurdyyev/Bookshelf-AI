@@ -21,7 +21,7 @@ MODEL_CHOICES = {
 st.set_page_config(
     page_title="Bookshelf AI",
     page_icon="bookshelf",
-    layout="wide",
+    layout="centered",
 )
 
 
@@ -36,20 +36,22 @@ st.markdown(
         display: none;
     }
     .stApp {
-        background: #ffffff;
+        background:
+            radial-gradient(circle at 18% 0%, rgba(59, 130, 246, 0.14), transparent 19rem),
+            radial-gradient(circle at 90% 12%, rgba(20, 184, 166, 0.12), transparent 18rem),
+            linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
     }
     .block-container {
-        padding-top: 1.1rem;
-        padding-bottom: 2rem;
-        max-width: 1180px;
+        padding-top: 1rem;
+        padding-bottom: 2.25rem;
+        max-width: 760px;
     }
     h1, h2, h3 {
         letter-spacing: 0;
     }
     h1 {
         color: #111827;
-        font-family: Georgia, "Times New Roman", serif;
-        font-size: 3rem;
+        font-size: 2.6rem;
         margin-bottom: 0.25rem;
     }
     h2, h3 {
@@ -61,43 +63,69 @@ st.markdown(
     div[data-testid="stFileUploader"] section {
         min-height: 7rem;
     }
-    .bookshelf-muted {
-        color: #4b5563;
-        font-size: 1rem;
-        max-width: 680px;
+    .app-hero {
+        margin-bottom: 1rem;
+        padding: 1.35rem 1.2rem;
+        border-radius: 22px;
+        color: #ffffff;
+        background:
+            radial-gradient(circle at 90% 0%, rgba(255,255,255,0.24), transparent 12rem),
+            linear-gradient(135deg, #111827 0%, #2563eb 58%, #14b8a6 100%);
+        box-shadow: 0 20px 42px rgba(37, 99, 235, 0.22);
     }
-    .book-topline {
-        color: #6b7280;
-        font-size: 0.78rem;
-        letter-spacing: 0.08rem;
-        margin-bottom: 0.1rem;
+    .app-hero-kicker {
+        color: rgba(255,255,255,0.74);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.1rem;
+        margin-bottom: 0.35rem;
         text-transform: uppercase;
     }
-    .book-spread {
-        margin-top: 1.2rem;
-        padding: 0;
-        border-radius: 0;
-        background: #ffffff;
-        box-shadow: none;
+    .app-hero-title {
+        font-size: 2.15rem;
+        font-weight: 800;
+        line-height: 1.05;
+        margin-bottom: 0.55rem;
+    }
+    .app-hero-copy {
+        color: rgba(255,255,255,0.86);
+        font-size: 0.98rem;
+        line-height: 1.45;
+        max-width: 33rem;
+    }
+    .section-note {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-top: -0.35rem;
+        margin-bottom: 0.6rem;
     }
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        border-color: #e5e7eb;
-        border-radius: 8px;
+        border-color: #dce5f2;
+        border-radius: 18px;
         background: #ffffff;
-        box-shadow: none;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
     }
     div.stButton > button {
         width: 100%;
-        border-radius: 6px;
-        min-height: 2.8rem;
+        border-radius: 12px;
+        min-height: 3rem;
+        font-weight: 700;
     }
     div.stButton > button[kind="primary"] {
-        background: #111827;
-        border-color: #111827;
+        background: linear-gradient(135deg, #2563eb, #14b8a6);
+        border-color: transparent;
         color: white;
     }
     div[data-testid="stTabs"] button {
         color: #111827;
+    }
+    div[data-baseweb="tab-list"] {
+        gap: 0.35rem;
+    }
+    div[data-baseweb="tab"] {
+        border-radius: 999px;
+        padding-left: 0.9rem;
+        padding-right: 0.9rem;
     }
     .result-title {
         color: #111827;
@@ -112,20 +140,26 @@ st.markdown(
     }
     @media (max-width: 640px) {
         .block-container {
-            padding-left: 0.85rem;
-            padding-right: 0.85rem;
-            padding-top: 0.75rem;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            padding-top: 0.65rem;
         }
-        h1 {
-            font-size: 2.25rem;
+        .app-hero {
+            border-radius: 18px;
+            padding: 1.15rem 1rem;
+            margin-bottom: 0.8rem;
         }
-        .bookshelf-muted {
-            font-size: 0.95rem;
+        .app-hero-title {
+            font-size: 1.85rem;
         }
-        .book-spread {
-            margin-left: -0.25rem;
-            margin-right: -0.25rem;
-            padding: 0.55rem;
+        .app-hero-copy {
+            font-size: 0.92rem;
+        }
+        h2, h3 {
+            font-size: 1.25rem;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            border-radius: 16px;
         }
     }
     </style>
@@ -240,96 +274,104 @@ def _display_results(result):
 def main():
     _init_state()
 
-    st.markdown('<div class="book-topline">Personal shelf discovery</div>', unsafe_allow_html=True)
-    st.title("Bookshelf AI")
     st.markdown(
-        '<p class="bookshelf-muted">Add bookshelf photos and get recommendations inspired by the books already on your shelf.</p>',
+        """
+        <div class="app-hero">
+            <div class="app-hero-kicker">Personal shelf discovery</div>
+            <div class="app-hero-title">Bookshelf AI</div>
+            <div class="app-hero-copy">
+                Add a few bookshelf photos and get recommendations inspired by
+                the books already on your shelf.
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="book-spread">', unsafe_allow_html=True)
-    left_page, right_page = st.columns([0.92, 1.28], gap="large")
+    with st.container(border=True):
+        st.subheader("Reading Setup")
+        st.markdown(
+            '<div class="section-note">Choose how the shelf should be read before adding photos.</div>',
+            unsafe_allow_html=True,
+        )
+        model_label = st.selectbox("Model", list(MODEL_CHOICES), index=0)
+        model = MODEL_CHOICES[model_label]
+        max_images = MODEL_IMAGE_LIMITS.get(model, DEFAULT_MAX_IMAGES_PER_REQUEST)
+        language_choice = st.selectbox(
+            "Language",
+            ["auto", "English", "Romanian", "Turkish", "Russian", "German", "French", "Spanish"],
+            index=0,
+        )
+        recommendation_limit = st.slider("Recommendations", 1, 10, 5)
+        st.caption(f"Up to {max_images} photos in one reading.")
 
-    with left_page:
-        with st.container(border=True):
-            st.subheader("Reading Setup")
-            model_label = st.selectbox("Model", list(MODEL_CHOICES), index=0)
-            model = MODEL_CHOICES[model_label]
-            max_images = MODEL_IMAGE_LIMITS.get(model, DEFAULT_MAX_IMAGES_PER_REQUEST)
-            language_choice = st.selectbox(
-                "Language",
-                ["auto", "English", "Romanian", "Turkish", "Russian", "German", "French", "Spanish"],
-                index=0,
+    with st.container(border=True):
+        st.subheader("Add Photos")
+        st.markdown(
+            '<div class="section-note">Upload shelf photos or take new ones with the camera.</div>',
+            unsafe_allow_html=True,
+        )
+        upload_tab, camera_tab = st.tabs(["Upload", "Camera"])
+
+        with upload_tab:
+            uploaded_files = st.file_uploader(
+                "Bookshelf photos, max 5 MB each",
+                type=SUPPORTED_IMAGE_TYPES,
+                accept_multiple_files=True,
+                help="Upload JPG, PNG, or WEBP images up to 5 MB each.",
             )
-            recommendation_limit = st.slider("Recommendations", 1, 10, 5)
-            st.caption(f"Up to {max_images} photos in one reading.")
 
-        with st.container(border=True):
-            st.subheader("Add Photos")
-            upload_tab, camera_tab = st.tabs(["Upload", "Camera"])
+        with camera_tab:
+            camera_photo = st.camera_input(
+                "Take a bookshelf photo",
+                key=f"camera_{st.session_state.camera_key}",
+            )
 
-            with upload_tab:
-                uploaded_files = st.file_uploader(
-                    "Bookshelf photos, max 5 MB each",
-                    type=SUPPORTED_IMAGE_TYPES,
-                    accept_multiple_files=True,
-                    help="Upload JPG, PNG, or WEBP images up to 5 MB each.",
-                )
-
-            with camera_tab:
-                camera_photo = st.camera_input(
-                    "Take a bookshelf photo",
-                    key=f"camera_{st.session_state.camera_key}",
-                )
-
-                button_columns = st.columns(2)
-                with button_columns[0]:
-                    if st.button("Add photo", disabled=camera_photo is None):
-                        st.session_state.camera_photos.append(camera_photo.getvalue())
-                        st.session_state.camera_key += 1
-                        st.rerun()
-                with button_columns[1]:
-                    if st.button("Clear photos", disabled=not st.session_state.camera_photos):
-                        st.session_state.camera_photos = []
-                        st.session_state.camera_key += 1
-                        st.rerun()
+            button_columns = st.columns(2)
+            with button_columns[0]:
+                if st.button("Add photo", disabled=camera_photo is None):
+                    st.session_state.camera_photos.append(camera_photo.getvalue())
+                    st.session_state.camera_key += 1
+                    st.rerun()
+            with button_columns[1]:
+                if st.button("Clear photos", disabled=not st.session_state.camera_photos):
+                    st.session_state.camera_photos = []
+                    st.session_state.camera_key += 1
+                    st.rerun()
 
     image_items = _uploaded_image_items(uploaded_files) + _camera_image_items()
     selected_items = image_items[:max_images]
 
-    with right_page:
+    with st.container(border=True):
+        st.subheader("Shelf Photos")
+        if len(image_items) > max_images:
+            st.warning(
+                f"{len(image_items)} photos were added, but this model can analyze only "
+                f"{max_images}. The first {max_images} photos will be used."
+            )
+        _display_preview(selected_items)
+
+        analyze_disabled = not selected_items
+        if st.button("Analyze Bookshelf", type="primary", disabled=analyze_disabled):
+            with st.spinner("Reading book spines and preparing suggestions..."):
+                try:
+                    with TemporaryDirectory(prefix="bookshelf_ai_streamlit_") as temp_dir:
+                        image_paths = _write_temp_images(selected_items, temp_dir)
+                        result = analyze_bookshelf_images(
+                            image_paths,
+                            api_key=_streamlit_secret_api_key(),
+                            model=model,
+                            language=language_choice,
+                            recommendation_limit=recommendation_limit,
+                        )
+                except GroqBookshelfError:
+                    st.error("Analysis failed. Please check the API key and selected model, then try again.")
+                else:
+                    st.session_state.last_result = result
+
+    if st.session_state.last_result:
         with st.container(border=True):
-            st.subheader("Shelf Photos")
-            if len(image_items) > max_images:
-                st.warning(
-                    f"{len(image_items)} photos were added, but this model can analyze only "
-                    f"{max_images}. The first {max_images} photos will be used."
-                )
-            _display_preview(selected_items)
-
-            analyze_disabled = not selected_items
-            if st.button("Analyze Bookshelf", type="primary", disabled=analyze_disabled):
-                with st.spinner("Reading book spines and preparing suggestions..."):
-                    try:
-                        with TemporaryDirectory(prefix="bookshelf_ai_streamlit_") as temp_dir:
-                            image_paths = _write_temp_images(selected_items, temp_dir)
-                            result = analyze_bookshelf_images(
-                                image_paths,
-                                api_key=_streamlit_secret_api_key(),
-                                model=model,
-                                language=language_choice,
-                                recommendation_limit=recommendation_limit,
-                            )
-                    except GroqBookshelfError:
-                        st.error("Analysis failed. Please check the API key and selected model, then try again.")
-                    else:
-                        st.session_state.last_result = result
-
-        if st.session_state.last_result:
-            with st.container(border=True):
-                _display_results(st.session_state.last_result)
-
-    st.markdown('</div>', unsafe_allow_html=True)
+            _display_results(st.session_state.last_result)
 
 
 if __name__ == "__main__":
