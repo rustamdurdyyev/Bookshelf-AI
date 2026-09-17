@@ -14,6 +14,8 @@ from groq_bookshelf import (
 
 SUPPORTED_IMAGE_TYPES = ("jpg", "jpeg", "png", "webp")
 MAX_PHOTOS_IN_UI = 6
+RECOMMENDATION_SAFE_LIMIT = 3
+RECOMMENDATION_MAX_LIMIT = 6
 
 
 st.set_page_config(
@@ -108,10 +110,10 @@ st.markdown(
         margin-top: -0.35rem;
         margin-bottom: 0.6rem;
     }
-    .photo-meter {
+    .limit-meter {
         margin: 0.2rem 0 0.9rem;
     }
-    .photo-meter-top {
+    .limit-meter-top {
         align-items: center;
         color: #334155;
         display: flex;
@@ -120,27 +122,27 @@ st.markdown(
         justify-content: space-between;
         margin-bottom: 0.35rem;
     }
-    .photo-meter-track {
+    .limit-meter-track {
         background: #e5e7eb;
         border-radius: 999px;
         height: 0.58rem;
         overflow: hidden;
         position: relative;
     }
-    .photo-meter-safe,
-    .photo-meter-over {
+    .limit-meter-safe,
+    .limit-meter-over {
         height: 100%;
         left: 0;
         position: absolute;
         top: 0;
     }
-    .photo-meter-safe {
+    .limit-meter-safe {
         background: linear-gradient(90deg, #2563eb, #38bdf8);
     }
-    .photo-meter-over {
+    .limit-meter-over {
         background: linear-gradient(90deg, #ef4444, #b91c1c);
     }
-    .photo-meter-labels {
+    .limit-meter-labels {
         color: #64748b;
         display: flex;
         font-size: 0.75rem;
@@ -286,8 +288,8 @@ def _display_preview(image_items):
         )
 
 
-def _photo_meter_html(photo_count, safe_limit, hard_limit):
-    visible_count = min(photo_count, hard_limit)
+def _limit_meter_html(count, safe_limit, hard_limit, item_label):
+    visible_count = min(count, hard_limit)
     safe_count = min(visible_count, safe_limit)
     over_count = max(0, visible_count - safe_limit)
     safe_width = (safe_count / hard_limit) * 100
@@ -295,16 +297,16 @@ def _photo_meter_html(photo_count, safe_limit, hard_limit):
     over_width = (over_count / hard_limit) * 100
 
     return f"""
-    <div class="photo-meter">
-        <div class="photo-meter-top">
-            <span>{visible_count}/{hard_limit} photos</span>
+    <div class="limit-meter">
+        <div class="limit-meter-top">
+            <span>{visible_count}/{hard_limit} {item_label}</span>
             <span>{safe_limit} ideal / {hard_limit} max</span>
         </div>
-        <div class="photo-meter-track">
-            <div class="photo-meter-safe" style="width: {safe_width:.1f}%;"></div>
-            <div class="photo-meter-over" style="left: {over_left:.1f}%; width: {over_width:.1f}%;"></div>
+        <div class="limit-meter-track">
+            <div class="limit-meter-safe" style="width: {safe_width:.1f}%;"></div>
+            <div class="limit-meter-over" style="left: {over_left:.1f}%; width: {over_width:.1f}%;"></div>
         </div>
-        <div class="photo-meter-labels">
+        <div class="limit-meter-labels">
             <span>0</span>
             <span>{safe_limit}</span>
             <span>{hard_limit}</span>
@@ -382,7 +384,21 @@ def main():
             ["auto", "English", "Romanian", "Turkish", "Russian", "German", "French", "Spanish"],
             index=0,
         )
-        recommendation_limit = st.slider("Recommendations", 1, 10, 5)
+        recommendation_limit = st.slider(
+            "Recommendations",
+            1,
+            RECOMMENDATION_MAX_LIMIT,
+            RECOMMENDATION_SAFE_LIMIT,
+        )
+        st.markdown(
+            _limit_meter_html(
+                recommendation_limit,
+                safe_limit=RECOMMENDATION_SAFE_LIMIT,
+                hard_limit=RECOMMENDATION_MAX_LIMIT,
+                item_label="books",
+            ),
+            unsafe_allow_html=True,
+        )
 
     with st.container(border=True):
         st.subheader("Add Photos")
@@ -425,10 +441,11 @@ def main():
     with st.container(border=True):
         st.subheader("Shelf Photos")
         st.markdown(
-            _photo_meter_html(
+            _limit_meter_html(
                 len(image_items),
                 safe_limit=max_images,
                 hard_limit=MAX_PHOTOS_IN_UI,
+                item_label="photos",
             ),
             unsafe_allow_html=True,
         )
