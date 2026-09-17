@@ -35,6 +35,13 @@ st.markdown(
     #MainMenu {
         display: none;
     }
+    html,
+    body,
+    .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"] {
+        color-scheme: light;
+    }
     .stApp {
         background:
             radial-gradient(circle at 18% 0%, rgba(59, 130, 246, 0.14), transparent 19rem),
@@ -62,6 +69,9 @@ st.markdown(
     }
     div[data-testid="stFileUploader"] section {
         min-height: 7rem;
+        background: #ffffff;
+        border-color: #dce5f2;
+        color: #111827;
     }
     .app-hero {
         margin-bottom: 1rem;
@@ -127,6 +137,12 @@ st.markdown(
         border-radius: 999px;
         padding-left: 0.9rem;
         padding-right: 0.9rem;
+    }
+    div[data-baseweb="select"] > div,
+    input,
+    textarea {
+        background-color: #ffffff;
+        color: #111827;
     }
     .result-title {
         color: #111827;
