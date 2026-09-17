@@ -19,6 +19,7 @@ The current pipeline runs locally, but it still needs an internet connection for
 
 ```text
 main.py           Entry point for the full pipeline
+streamlit_app.py  Streamlit interface for upload/camera plus Groq vision
 ocr.py            PaddleOCR setup and OCR result parsing
 matcher.py        Layout-aware OCR cleanup and optional Google Books title matching
 recommender.py    Open Library based recommendation engine
@@ -29,10 +30,12 @@ bookshelf.jpg     Sample bookshelf image for testing
 ## Requirements
 
 - Python 3.9 or higher
-- Internet connection for Google Books and Open Library requests
-- PaddleOCR and PaddlePaddle, installed from `requirements.txt`
+- Internet connection for Groq API requests in the Streamlit app
+- A Groq API key saved locally in `.env` or in Streamlit Cloud secrets
 
-PaddleOCR may download OCR models the first time it runs.
+The Streamlit deployment uses a lightweight Groq vision pipeline. The older
+local OCR pipeline is still available, but its heavier dependencies live in
+`requirements-ocr.txt`.
 
 ## Installation
 
@@ -65,6 +68,13 @@ Install dependencies:
 
 ```bash
 python -m pip install -r requirements.txt
+```
+
+To use the older local OCR command-line pipeline, install its optional
+dependencies too:
+
+```bash
+python -m pip install -r requirements-ocr.txt
 ```
 
 ## Usage
@@ -127,6 +137,76 @@ python main.py bookshelf.jpg --skip-recommendations
 ```
 
 Supported image formats include `.jpg`, `.jpeg`, `.png`, and `.webp`.
+
+## Test Groq Vision
+
+You can also test Groq vision before adding the Streamlit interface. This sends
+local bookshelf photos to Groq and prints detected books plus
+recommendations as JSON.
+
+Set your API key locally. Do not commit it to the repository. The local `.env`
+file is ignored by Git, so you can put your real key there:
+
+```text
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+You can also set the key only for your current terminal session.
+
+On Windows PowerShell:
+
+```powershell
+$env:GROQ_API_KEY = "your_groq_api_key_here"
+```
+
+Run the Groq check:
+
+```bash
+python groq_check.py bookshelf.jpg
+```
+
+Run it with a few photos:
+
+```bash
+python groq_check.py bookshelf.jpg bookshelf_rupam.jpeg --limit 5
+```
+
+Use a language hint when helpful:
+
+```bash
+python groq_check.py bookshelf_turkish.png --language Turkish
+```
+
+The default Groq model is `qwen/qwen3.8-27b`, because it supports vision and
+JSON mode with the model access currently available to this project.
+
+## Run Streamlit Locally
+
+After setting `GROQ_API_KEY` in `.env`, start the local app:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+The Streamlit interface lets you upload bookshelf images, capture camera photos,
+choose the Groq model, and generate detected books plus recommendations.
+
+## Deploy on Streamlit Community Cloud
+
+Push this repository to GitHub, then create a new app at Streamlit Community
+Cloud with:
+
+- Repository: `rustamdurdyyev/Bookshelf-AI`
+- Branch: your deployment branch
+- Main file path: `streamlit_app.py`
+
+In Advanced settings, add this secret:
+
+```toml
+GROQ_API_KEY = "your_groq_api_key_here"
+```
+
+Do not commit `.env` or `.streamlit/secrets.toml`; both are ignored by Git.
 
 ## How It Works
 
