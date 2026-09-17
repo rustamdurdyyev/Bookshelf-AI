@@ -13,6 +13,7 @@ from groq_bookshelf import (
 
 
 SUPPORTED_IMAGE_TYPES = ("jpg", "jpeg", "png", "webp")
+MAX_PHOTOS_IN_UI = 6
 
 
 st.set_page_config(
@@ -106,6 +107,45 @@ st.markdown(
         font-size: 0.9rem;
         margin-top: -0.35rem;
         margin-bottom: 0.6rem;
+    }
+    .photo-meter {
+        margin: 0.2rem 0 0.9rem;
+    }
+    .photo-meter-top {
+        align-items: center;
+        color: #334155;
+        display: flex;
+        font-size: 0.86rem;
+        font-weight: 650;
+        justify-content: space-between;
+        margin-bottom: 0.35rem;
+    }
+    .photo-meter-track {
+        background: #e5e7eb;
+        border-radius: 999px;
+        height: 0.58rem;
+        overflow: hidden;
+        position: relative;
+    }
+    .photo-meter-safe,
+    .photo-meter-over {
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
+    }
+    .photo-meter-safe {
+        background: linear-gradient(90deg, #2563eb, #38bdf8);
+    }
+    .photo-meter-over {
+        background: linear-gradient(90deg, #ef4444, #b91c1c);
+    }
+    .photo-meter-labels {
+        color: #64748b;
+        display: flex;
+        font-size: 0.75rem;
+        justify-content: space-between;
+        margin-top: 0.25rem;
     }
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border-color: #dce5f2;
@@ -246,6 +286,33 @@ def _display_preview(image_items):
         )
 
 
+def _photo_meter_html(photo_count, safe_limit, hard_limit):
+    visible_count = min(photo_count, hard_limit)
+    safe_count = min(visible_count, safe_limit)
+    over_count = max(0, visible_count - safe_limit)
+    safe_width = (safe_count / hard_limit) * 100
+    over_left = (safe_limit / hard_limit) * 100
+    over_width = (over_count / hard_limit) * 100
+
+    return f"""
+    <div class="photo-meter">
+        <div class="photo-meter-top">
+            <span>{visible_count}/{hard_limit} photos</span>
+            <span>{safe_limit} ideal / {hard_limit} max</span>
+        </div>
+        <div class="photo-meter-track">
+            <div class="photo-meter-safe" style="width: {safe_width:.1f}%;"></div>
+            <div class="photo-meter-over" style="left: {over_left:.1f}%; width: {over_width:.1f}%;"></div>
+        </div>
+        <div class="photo-meter-labels">
+            <span>0</span>
+            <span>{safe_limit}</span>
+            <span>{hard_limit}</span>
+        </div>
+    </div>
+    """
+
+
 def _result_rows(items):
     if not items:
         return []
@@ -316,7 +383,6 @@ def main():
             index=0,
         )
         recommendation_limit = st.slider("Recommendations", 1, 10, 5)
-        st.caption(f"Up to {max_images} photos in one reading.")
 
     with st.container(border=True):
         st.subheader("Add Photos")
@@ -353,16 +419,24 @@ def main():
                     st.rerun()
 
     image_items = _uploaded_image_items(uploaded_files) + _camera_image_items()
+    visible_items = image_items[:MAX_PHOTOS_IN_UI]
     selected_items = image_items[:max_images]
 
     with st.container(border=True):
         st.subheader("Shelf Photos")
-        if len(image_items) > max_images:
+        st.markdown(
+            _photo_meter_html(
+                len(image_items),
+                safe_limit=max_images,
+                hard_limit=MAX_PHOTOS_IN_UI,
+            ),
+            unsafe_allow_html=True,
+        )
+        if len(image_items) > MAX_PHOTOS_IN_UI:
             st.warning(
-                f"{len(image_items)} photos were added, but this model can analyze only "
-                f"{max_images}. The first {max_images} photos will be used."
+                f"{len(image_items)} photos were added. The first {MAX_PHOTOS_IN_UI} photos are shown."
             )
-        _display_preview(selected_items)
+        _display_preview(visible_items)
 
         analyze_disabled = not selected_items
         if st.button("Analyze Bookshelf", type="primary", disabled=analyze_disabled):
