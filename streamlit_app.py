@@ -16,6 +16,10 @@ SUPPORTED_IMAGE_TYPES = ("jpg", "jpeg", "png", "webp")
 MAX_PHOTOS_IN_UI = 6
 RECOMMENDATION_SAFE_LIMIT = 3
 RECOMMENDATION_MAX_LIMIT = 6
+MODEL_CHOICES = {
+    "Qwen 3.8 27B": "qwen/qwen3.8-27b",
+    "Qwen 3.6 27B": "qwen/qwen3.6-27b",
+}
 
 
 st.set_page_config(
@@ -154,6 +158,17 @@ st.markdown(
         border-radius: 18px;
         background: #ffffff;
         box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+    }
+    div[data-testid="stExpander"] {
+        border: 1px solid #dce5f2;
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+    }
+    div[data-testid="stExpander"] details summary {
+        font-weight: 750;
+        color: #111827;
     }
     div.stButton > button {
         width: 100%;
@@ -374,13 +389,26 @@ def main():
         unsafe_allow_html=True,
     )
 
-    with st.container(border=True):
-        st.subheader("Reading Setup")
+    with st.expander("Reading Setup", expanded=False):
         st.markdown(
             '<div class="section-note">Choose how the shelf should be read before adding photos.</div>',
             unsafe_allow_html=True,
         )
-        model = DEFAULT_GROQ_MODEL
+        model_names = list(MODEL_CHOICES)
+        default_model_name = next(
+            (
+                name
+                for name, model_id in MODEL_CHOICES.items()
+                if model_id == DEFAULT_GROQ_MODEL
+            ),
+            model_names[0],
+        )
+        model_name = st.selectbox(
+            "Model",
+            model_names,
+            index=model_names.index(default_model_name),
+        )
+        model = MODEL_CHOICES[model_name]
         max_images = MODEL_IMAGE_LIMITS.get(model, DEFAULT_MAX_IMAGES_PER_REQUEST)
         language_choice = st.selectbox(
             "Language",
