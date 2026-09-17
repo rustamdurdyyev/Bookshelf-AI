@@ -177,6 +177,9 @@ st.markdown(
         padding-left: 0.9rem;
         padding-right: 0.9rem;
     }
+    div[data-testid="stSlider"] div[data-baseweb="slider"] > div:first-child {
+        background: linear-gradient(90deg, #2563eb 0%, #38bdf8 50%, #ef4444 50%, #b91c1c 100%) !important;
+    }
     div[data-baseweb="select"] > div,
     input,
     textarea {
@@ -390,20 +393,11 @@ def main():
             RECOMMENDATION_MAX_LIMIT,
             RECOMMENDATION_SAFE_LIMIT,
         )
-        st.markdown(
-            _limit_meter_html(
-                recommendation_limit,
-                safe_limit=RECOMMENDATION_SAFE_LIMIT,
-                hard_limit=RECOMMENDATION_MAX_LIMIT,
-                item_label="books",
-            ),
-            unsafe_allow_html=True,
-        )
 
     with st.container(border=True):
-        st.subheader("Add Photos")
+        st.subheader("Add Photos From Your Shelf")
         st.markdown(
-            '<div class="section-note">Upload shelf photos or take new ones with the camera.</div>',
+            '<div class="section-note">Upload shelf photos or take new ones, then analyze your bookshelf.</div>',
             unsafe_allow_html=True,
         )
         upload_tab, camera_tab = st.tabs(["Upload", "Camera"])
@@ -434,12 +428,10 @@ def main():
                     st.session_state.camera_key += 1
                     st.rerun()
 
-    image_items = _uploaded_image_items(uploaded_files) + _camera_image_items()
-    visible_items = image_items[:MAX_PHOTOS_IN_UI]
-    selected_items = image_items[:max_images]
+        image_items = _uploaded_image_items(uploaded_files) + _camera_image_items()
+        visible_items = image_items[:MAX_PHOTOS_IN_UI]
+        selected_items = image_items[:max_images]
 
-    with st.container(border=True):
-        st.subheader("Shelf Photos")
         st.markdown(
             _limit_meter_html(
                 len(image_items),
