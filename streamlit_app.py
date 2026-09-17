@@ -114,45 +114,6 @@ st.markdown(
         margin-top: -0.35rem;
         margin-bottom: 0.6rem;
     }
-    .limit-meter {
-        margin: 0.2rem 0 0.9rem;
-    }
-    .limit-meter-top {
-        align-items: center;
-        color: #334155;
-        display: flex;
-        font-size: 0.86rem;
-        font-weight: 650;
-        justify-content: space-between;
-        margin-bottom: 0.35rem;
-    }
-    .limit-meter-track {
-        background: #e5e7eb;
-        border-radius: 999px;
-        height: 0.58rem;
-        overflow: hidden;
-        position: relative;
-    }
-    .limit-meter-safe,
-    .limit-meter-over {
-        height: 100%;
-        left: 0;
-        position: absolute;
-        top: 0;
-    }
-    .limit-meter-safe {
-        background: linear-gradient(90deg, #2563eb, #38bdf8);
-    }
-    .limit-meter-over {
-        background: linear-gradient(90deg, #ef4444, #b91c1c);
-    }
-    .limit-meter-labels {
-        color: #64748b;
-        display: flex;
-        font-size: 0.75rem;
-        justify-content: space-between;
-        margin-top: 0.25rem;
-    }
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border-color: #dce5f2;
         border-radius: 18px;
@@ -166,7 +127,11 @@ st.markdown(
         box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
         overflow: hidden;
     }
+    div[data-testid="stExpander"] details {
+        padding: 0.35rem 0.55rem;
+    }
     div[data-testid="stExpander"] details summary {
+        font-size: 1.25rem;
         font-weight: 750;
         color: #111827;
     }
@@ -232,7 +197,8 @@ st.markdown(
         h2, h3 {
             font-size: 1.25rem;
         }
-        div[data-testid="stVerticalBlockBorderWrapper"] {
+        div[data-testid="stVerticalBlockBorderWrapper"],
+        div[data-testid="stExpander"] {
             border-radius: 16px;
         }
     }
@@ -304,33 +270,6 @@ def _display_preview(image_items):
             caption=f"{index + 1}. {image_item['source']} - {image_item['name']}",
             width="stretch",
         )
-
-
-def _limit_meter_html(count, safe_limit, hard_limit, item_label):
-    visible_count = min(count, hard_limit)
-    safe_count = min(visible_count, safe_limit)
-    over_count = max(0, visible_count - safe_limit)
-    safe_width = (safe_count / hard_limit) * 100
-    over_left = (safe_limit / hard_limit) * 100
-    over_width = (over_count / hard_limit) * 100
-
-    return f"""
-    <div class="limit-meter">
-        <div class="limit-meter-top">
-            <span>{visible_count}/{hard_limit} {item_label}</span>
-            <span>{safe_limit} ideal / {hard_limit} max</span>
-        </div>
-        <div class="limit-meter-track">
-            <div class="limit-meter-safe" style="width: {safe_width:.1f}%;"></div>
-            <div class="limit-meter-over" style="left: {over_left:.1f}%; width: {over_width:.1f}%;"></div>
-        </div>
-        <div class="limit-meter-labels">
-            <span>0</span>
-            <span>{safe_limit}</span>
-            <span>{hard_limit}</span>
-        </div>
-    </div>
-    """
 
 
 def _result_rows(items):
@@ -460,15 +399,6 @@ def main():
         visible_items = image_items[:MAX_PHOTOS_IN_UI]
         selected_items = image_items[:max_images]
 
-        st.markdown(
-            _limit_meter_html(
-                len(image_items),
-                safe_limit=max_images,
-                hard_limit=MAX_PHOTOS_IN_UI,
-                item_label="photos",
-            ),
-            unsafe_allow_html=True,
-        )
         if len(image_items) > MAX_PHOTOS_IN_UI:
             st.warning(
                 f"{len(image_items)} photos were added. The first {MAX_PHOTOS_IN_UI} photos are shown."
