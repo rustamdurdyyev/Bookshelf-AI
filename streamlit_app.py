@@ -13,9 +13,6 @@ from groq_bookshelf import (
 
 
 SUPPORTED_IMAGE_TYPES = ("jpg", "jpeg", "png", "webp")
-MODEL_CHOICES = {
-    "Balanced reader": DEFAULT_GROQ_MODEL,
-}
 
 
 st.set_page_config(
@@ -311,8 +308,7 @@ def main():
             '<div class="section-note">Choose how the shelf should be read before adding photos.</div>',
             unsafe_allow_html=True,
         )
-        model_label = st.selectbox("Model", list(MODEL_CHOICES), index=0)
-        model = MODEL_CHOICES[model_label]
+        model = DEFAULT_GROQ_MODEL
         max_images = MODEL_IMAGE_LIMITS.get(model, DEFAULT_MAX_IMAGES_PER_REQUEST)
         language_choice = st.selectbox(
             "Language",
